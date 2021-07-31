@@ -1,0 +1,83 @@
+import React, { useState, useEffect } from "react";
+import ContactForm from "./ContactForm"
+import firebaseDb from "../firebase";
+
+const Contacts = () => {
+
+    var [currentId, setCurrentId] = useState('');
+    var [contactObjects, setContactObjects] = useState({})
+
+    //Once components load complete
+    useEffect(() => {
+        firebaseDb.child("contacts").on("value", snapshot => {
+            if (snapshot.val() != null) {
+                setContactObjects({
+                    ...snapshot.val()
+                });
+            }
+        })
+    }, []) // Similar to componentDidMount
+
+    const addOrEdit = (obj) => {
+
+        firebaseDb.child('contacts').push(
+            obj,
+            err => {
+                if (err)
+                    console.log(err)
+            })
+
+    }
+    return (
+        <>
+            <div class="jumbotron jumbotron-fluid">
+                <div class="container">
+                    <h1 class="display-4 text-center">Contact Register</h1>
+                </div>
+            </div>
+            <div className="row">
+                <div className="col-md-5">
+                    <ContactForm {...({ currentId, contactObjects, addOrEdit })} ></ContactForm>
+                </div>
+
+                <div className="col-md-7">
+                    <div>
+                        <table className="table table-borderless table-stripped">
+                            <thead className="thead-light">
+                                <tr>
+                                    <th>Full Name</th>
+                                    <th>Mobile</th>
+                                    <th>Email</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {
+                                    Object.keys(contactObjects).map(id => {
+                                        return <tr key={id}>
+                                            <td>{contactObjects[id].fullName}</td>
+                                            <td>{contactObjects[id].mobile}</td>
+                                            <td>{contactObjects[id].email}</td>
+
+                                            <td className="bg-light">
+                                                <a className="btn text-primary" onClick={() => { setCurrentId() }}>
+                                                    <i className="fas fa-pencil-alt"></i>
+                                                </a>
+                                                <a className="btn text-danger" >
+                                                    <i className="far fa-trash-alt"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    })
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </>
+
+    );
+}
+
+export default Contacts;
