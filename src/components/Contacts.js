@@ -10,24 +10,53 @@ const Contacts = () => {
     //Once components load complete
     useEffect(() => {
         firebaseDb.child("contacts").on("value", snapshot => {
-            if (snapshot.val() != null) {
+            if (snapshot.val() != null)
+
                 setContactObjects({
                     ...snapshot.val()
-                });
-            }
+                })
+            else
+                setContactObjects({})
+
         })
     }, []) // Similar to componentDidMount
 
     const addOrEdit = (obj) => {
 
-        firebaseDb.child('contacts').push(
-            obj,
-            err => {
-                if (err)
-                    console.log(err)
-            })
+        if (currentId == '')
+            firebaseDb.child('contacts').push(
+                obj,
+                err => {
+                    if (err)
+                        console.log(err)
+                    else
+                        setCurrentId('')
+                })
+        else
+            firebaseDb.child(`contacts/${currentId}`).set(
+                obj,
+                err => {
+                    if (err)
+                        console.log(err)
+                    else
+                        setCurrentId('')
+                })
 
     }
+
+    const onDelete = key => {
+        if (window.confirm('Are you sure to delete this record?')) {
+            firebaseDb.child(`contacts/${key}`).remove(
+                err => {
+                    if (err)
+                        console.log(err)
+                    else
+                        setCurrentId('')
+                }
+            )
+        }
+    }
+
     return (
         <>
             <div class="jumbotron jumbotron-fluid">
@@ -60,10 +89,10 @@ const Contacts = () => {
                                             <td>{contactObjects[id].email}</td>
 
                                             <td className="bg-light">
-                                                <a className="btn text-primary" onClick={() => { setCurrentId() }}>
+                                                <a className="btn text-primary" onClick={() => { setCurrentId(id) }}>
                                                     <i className="fas fa-pencil-alt"></i>
                                                 </a>
-                                                <a className="btn text-danger" >
+                                                <a className="btn text-danger" onClick={() => { onDelete(id) }}>
                                                     <i className="far fa-trash-alt"></i>
                                                 </a>
                                             </td>
